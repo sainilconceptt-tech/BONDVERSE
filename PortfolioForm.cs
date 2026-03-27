@@ -148,10 +148,8 @@ namespace BONDVERSE
     {
         MessageBox.Show(ex.Message);
     }
-};
-            
+};  
             void GenerateTable(object sender, EventArgs e)
-
             Controls.AddRange(new Control[] {
                 txtPortfolio, txtInvestor, dtTrans, txtFV, txtQty,
                 txtBondName, txtCoupon, txtCheque, cmbFreq, dtMaturity,
