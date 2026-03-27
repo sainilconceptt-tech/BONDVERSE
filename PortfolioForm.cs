@@ -16,6 +16,8 @@ namespace BONDVERSE
         TextBox txtBondName = new TextBox();
         TextBox txtCoupon = new TextBox();
         TextBox txtCheque = new TextBox();
+        ComboBox cmbFreq = new ComboBox();
+        ComboBox cmbQuarterStart = new ComboBox();
 
         DateTimePicker dtTrans = new DateTimePicker();
         DateTimePicker dtMaturity = new DateTimePicker();
@@ -59,10 +61,42 @@ namespace BONDVERSE
             Controls.Add(new Label() { Text = "Interest Frequency", Top = y += 30, Left = 10 });
             cmbFreq.SetBounds(150, y, 150, 25);
             cmbFreq.Items.AddRange(new string[] { "Monthly", "Quarterly", "Yearly" });
+            Controls.Add(new Label() { Text = "Interest Frequency", Top = y += 30, Left = 10 });
+
+            cmbFreq.SetBounds(150, y, 150, 25);
+
+            // Add dropdown values
+            cmbFreq.Items.AddRange(new string[]
+            {
+            "Monthly",
+            "Quarterly",
+            "Yearly"
+            });
+
+            // Optional default
+            cmbFreq.SelectedIndex = 0;
+
+            Controls.Add(cmbFreq);
+            Controls.Add(new Label() { Text = "Quarter Start Month", Top = y += 30, Left = 10 });
+
+            cmbQuarterStart.SetBounds(150, y, 150, 25);
+
+            cmbQuarterStart.Items.AddRange(new string[]
+            {
+            "January","February","March","April","May","June",
+            "July","August","September","October","November","December"
+            });
+
+            Controls.Add(cmbQuarterStart);
+            cmbFreq.SelectedIndexChanged += (s, e) =>
+            {
+            cmbQuarterStart.Visible = cmbFreq.Text == "Quarterly";
+            };
+            cmbQuarterStart.Visible = false;
 
             Controls.Add(new Label() { Text = "Maturity Date", Top = y += 30, Left = 10 });
             dtMaturity.SetBounds(150, y, 150, 25);
-
+                      
             Button btnAdd = new Button() { Text = "Add Entry", Top = y += 40, Left = 10 };
             Button btnSubmit = new Button() { Text = "Submit", Top = y, Left = 120 };
 
@@ -100,6 +134,8 @@ namespace BONDVERSE
                     ChequeAmount = double.Parse(txtCheque.Text),
                     Frequency = cmbFreq.Text,
                     MaturityDate = dtMaturity.Value
+                    Frequency = cmbFreq.Text,
+                    QuarterStartMonth = cmbQuarterStart.Text,
                 };
 
                 entries.Add(p);
