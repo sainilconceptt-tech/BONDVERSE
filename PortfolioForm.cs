@@ -104,6 +104,7 @@ namespace BONDVERSE
 
             btnAdd.Click += AddEntry;
             btnSubmit.Click += GenerateTable;
+            void GenerateTable(object sender, EventArgs e)
 
             Controls.AddRange(new Control[] {
                 txtPortfolio, txtInvestor, dtTrans, txtFV, txtQty,
