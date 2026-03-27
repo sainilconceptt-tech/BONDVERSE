@@ -148,8 +148,9 @@ namespace BONDVERSE
     {
         MessageBox.Show(ex.Message);
     }
-};  
+}; 
             void GenerateTable(object sender, EventArgs e)
+            {
             Controls.AddRange(new Control[] {
                 txtPortfolio, txtInvestor, dtTrans, txtFV, txtQty,
                 txtBondName, txtCoupon, txtCheque, cmbFreq, dtMaturity,
@@ -178,7 +179,7 @@ namespace BONDVERSE
                     CouponRate = double.Parse(txtCoupon.Text),
                     ChequeAmount = double.Parse(txtCheque.Text),
                     Frequency = cmbFreq.Text,
-                    MaturityDate = dtMaturity.Value
+                    MaturityDate = dtMaturity.Value,
                     Frequency = cmbFreq.Text,
                     QuarterStartMonth = cmbQuarterStart.Text,
                 };
