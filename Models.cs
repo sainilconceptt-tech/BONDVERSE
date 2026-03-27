@@ -14,5 +14,6 @@ namespace BONDVERSE
         public double ChequeAmount { get; set; }
         public string Frequency { get; set; }
         public DateTime MaturityDate { get; set; }
+        public string QuarterStartMonth { get; set; }
     }
 }
