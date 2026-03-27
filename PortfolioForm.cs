@@ -2,6 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Windows.Forms;
+using iText.Kernel.Pdf;
+using iText.Layout;
+using iText.Layout.Element;
 
 namespace BONDVERSE
 {
@@ -99,11 +102,54 @@ namespace BONDVERSE
                       
             Button btnAdd = new Button() { Text = "Add Entry", Top = y += 40, Left = 10 };
             Button btnSubmit = new Button() { Text = "Submit", Top = y, Left = 120 };
+            Button btnPdf = new Button() { Text = "Export PDF", Top = 460, Left = 300 };
+            Controls.Add(btnPdf);
 
             grid.SetBounds(320, 10, 650, 500);
 
             btnAdd.Click += AddEntry;
             btnSubmit.Click += GenerateTable;
+            btnPdf.Click += (s, e) =>
+{
+    try
+    {
+        string filePath = "BondReport.pdf";
+
+        var writer = new PdfWriter(filePath);
+        var pdf = new PdfDocument(writer);
+        var document = new Document(pdf, PageSize.A4.Rotate());
+
+        // Create table with same columns as grid
+        float[] widths = new float[grid.Columns.Count];
+        for (int i = 0; i < widths.Length; i++) widths[i] = 1;
+        Table table = new Table(widths);
+
+        // Headers
+        foreach (DataGridViewColumn col in grid.Columns)
+        {
+            table.AddHeaderCell(col.HeaderText);
+        }
+
+        // Data
+        foreach (DataGridViewRow row in grid.Rows)
+        {
+            foreach (DataGridViewCell cell in row.Cells)
+            {
+                table.AddCell(cell.Value?.ToString() ?? "");
+            }
+        }
+
+        document.Add(table);
+        document.Close();
+
+        MessageBox.Show("PDF Created Successfully!");
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show(ex.Message);
+    }
+};
+            
             void GenerateTable(object sender, EventArgs e)
 
             Controls.AddRange(new Control[] {
