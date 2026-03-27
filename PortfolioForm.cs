@@ -178,7 +178,6 @@ namespace BONDVERSE
                     ChequeAmount = double.Parse(txtCheque.Text),
                     Frequency = cmbFreq.Text,
                     MaturityDate = dtMaturity.Value,
-                    Frequency = cmbFreq.Text,
                     QuarterStartMonth = cmbQuarterStart.Text,
                 };
 
@@ -194,8 +193,7 @@ namespace BONDVERSE
             }
         }
 
-        void GenerateTable(object sender, EventArgs e)
-        {
+               {
             DataTable dt = new DataTable();
 
             dt.Columns.Add("Bond Name");
