@@ -24,9 +24,7 @@ namespace BONDVERSE
 
         DateTimePicker dtTrans = new DateTimePicker();
         DateTimePicker dtMaturity = new DateTimePicker();
-
-        ComboBox cmbFreq = new ComboBox();
-
+        
         DataGridView grid = new DataGridView();
 
         public PortfolioForm()
