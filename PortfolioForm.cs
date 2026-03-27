@@ -180,11 +180,43 @@ namespace BONDVERSE
 
                 foreach (var m in months)
                 {
+                    double interest = 0;
                     if (m <= e1.MaturityDate)
-                        row[m.ToString("MMM yyyy")] = monthlyInterest;
-                    else
-                        row[m.ToString("MMM yyyy")] = "";
-                }
+                    {
+                        // Monthly
+                        if (e1.Frequency == "Monthly")
+                        {
+                            interest = e1.FV * e1.CouponRate / 100 / 12;
+                        }
+
+                        // Quarterly
+                        else if (e1.Frequency == "Quarterly")
+                        {
+                            if (!string.IsNullOrEmpty(e1.QuarterStartMonth))
+                            {
+                            int startMonth = DateTime.ParseExact(e1.QuarterStartMonth, "MMMM", null).Month;
+
+                            int diff = (m.Year - e1.TransactionDate.Year) * 12 + (m.Month - startMonth);
+
+                            if (diff >= 0 && diff % 3 == 0)
+                            {
+                                interest = e1.FV * e1.CouponRate / 100 / 4;
+                            }
+                        }
+                    }
+
+                            // Yearly
+                            else if (e1.Frequency == "Yearly")
+                            {
+                                if (m.Month == e1.TransactionDate.Month)
+                                {
+                                    interest = e1.FV * e1.CouponRate / 100;
+                                }
+                            }
+                        }
+
+    row[m.ToString("MMM yyyy")] = Math.Round(interest);
+}
 
                 dt.Rows.Add(row);
             }
