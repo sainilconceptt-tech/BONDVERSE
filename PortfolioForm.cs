@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Data;
+using System.Linq;
 using System.Windows.Forms;
 using iText.Kernel.Pdf;
 using iText.Layout;
@@ -36,8 +37,8 @@ namespace BONDVERSE
         public PortfolioForm()
         {
             Text = "Create Portfolio";
-            Width = 1000;
-            Height = 600;
+            Width = 1100;
+            Height = 650;
 
             int y = 10;
 
@@ -100,13 +101,13 @@ namespace BONDVERSE
 
             btnAdd = new Button() { Text = "Add Entry", Top = y += 40, Left = 10 };
             btnSubmit = new Button() { Text = "Submit", Top = y, Left = 120 };
-            btnPdf = new Button() { Text = "Export PDF", Top = 460, Left = 300 };
+            btnPdf = new Button() { Text = "Export PDF", Top = y, Left = 230 };
 
             Controls.Add(btnAdd);
             Controls.Add(btnSubmit);
             Controls.Add(btnPdf);
 
-            grid.SetBounds(350, 10, 600, 500);
+            grid.SetBounds(350, 10, 700, 550);
             Controls.Add(grid);
 
             btnAdd.Click += AddEntry;
@@ -151,11 +152,11 @@ namespace BONDVERSE
             dt.Columns.Add("FV");
 
             DateTime start = DateTime.Today;
-            DateTime end = DateTime.Today.AddYears(2);
+            DateTime maxDate = entries.Max(x => x.MaturityDate);
 
             List<DateTime> months = new List<DateTime>();
 
-            while (start <= end)
+            while (start <= maxDate)
             {
                 dt.Columns.Add(start.ToString("MMM yyyy"));
                 months.Add(start);
@@ -179,14 +180,11 @@ namespace BONDVERSE
 
                         else if (e1.Frequency == "Quarterly")
                         {
-                            if (!string.IsNullOrEmpty(e1.QuarterStartMonth))
-                            {
-                                int startMonth = DateTime.ParseExact(e1.QuarterStartMonth, "MMMM", null).Month;
-                                int diff = (m.Year - e1.TransactionDate.Year) * 12 + (m.Month - startMonth);
+                            int startMonth = DateTime.ParseExact(e1.QuarterStartMonth, "MMMM", null).Month;
+                            int diff = (m.Year - e1.TransactionDate.Year) * 12 + (m.Month - startMonth);
 
-                                if (diff >= 0 && diff % 3 == 0)
-                                    interest = e1.FV * e1.CouponRate / 100 / 4;
-                            }
+                            if (diff >= 0 && diff % 3 == 0)
+                                interest = e1.FV * e1.CouponRate / 100 / 4;
                         }
                         else if (e1.Frequency == "Yearly")
                         {
@@ -200,6 +198,25 @@ namespace BONDVERSE
 
                 dt.Rows.Add(row);
             }
+
+            // TOTAL ROW
+            var totalRow = dt.NewRow();
+            totalRow["Bond Name"] = "TOTAL";
+
+            foreach (DataColumn col in dt.Columns)
+            {
+                if (col.ColumnName != "Bond Name" && col.ColumnName != "FV")
+                {
+                    double sum = 0;
+
+                    foreach (DataRow r in dt.Rows)
+                        sum += Convert.ToDouble(r[col]);
+
+                    totalRow[col] = sum;
+                }
+            }
+
+            dt.Rows.Add(totalRow);
 
             grid.DataSource = dt;
         }
@@ -216,23 +233,28 @@ namespace BONDVERSE
                 {
                     string filePath = saveFile.FileName;
 
-                    var writer = new PdfWriter(filePath);
-                    var pdf = new PdfDocument(writer);
-                    var document = new Document(pdf);
-
-                    Table table = new Table(grid.Columns.Count);
-
-                    foreach (DataGridViewColumn col in grid.Columns)
-                        table.AddHeaderCell(col.HeaderText);
-
-                    foreach (DataGridViewRow row in grid.Rows)
+                    using (var writer = new PdfWriter(filePath))
+                    using (var pdf = new PdfDocument(writer))
+                    using (var document = new Document(pdf))
                     {
-                        foreach (DataGridViewCell cell in row.Cells)
-                            table.AddCell(cell.Value?.ToString() ?? "");
-                    }
+                        float[] widths = new float[grid.Columns.Count];
+                        for (int i = 0; i < widths.Length; i++) widths[i] = 1;
 
-                    document.Add(table);
-                    document.Close();
+                        Table table = new Table(widths);
+
+                        foreach (DataGridViewColumn col in grid.Columns)
+                            table.AddHeaderCell(col.HeaderText);
+
+                        foreach (DataGridViewRow row in grid.Rows)
+                        {
+                            if (row.IsNewRow) continue;
+
+                            foreach (DataGridViewCell cell in row.Cells)
+                                table.AddCell(cell.Value?.ToString() ?? "");
+                        }
+
+                        document.Add(table);
+                    }
 
                     MessageBox.Show("PDF saved successfully!");
                 }
