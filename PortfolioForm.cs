@@ -38,29 +38,38 @@ namespace BONDVERSE
 
             Controls.Add(new Label() { Text = "Portfolio Name", Top = y, Left = 10 });
             txtPortfolio.SetBounds(150, y, 150, 25);
+            Controls.Add(txtPortfolio);
 
             Controls.Add(new Label() { Text = "Investor Name", Top = y += 30, Left = 10 });
             txtInvestor.SetBounds(150, y, 150, 25);
+            Controls.Add(txtInvestor)
 
             Controls.Add(new Label() { Text = "Transaction Date", Top = y += 30, Left = 10 });
             dtTrans.SetBounds(150, y, 150, 25);
+            Controls.Add(dtTrans);
 
             Controls.Add(new Label() { Text = "Bond FV", Top = y += 30, Left = 10 });
             txtFV.SetBounds(150, y, 150, 25);
+            Controls.Add(txtFV);
 
             Controls.Add(new Label() { Text = "Quantity", Top = y += 30, Left = 10 });
             txtQty.SetBounds(150, y, 150, 25);
+            Controls.Add(txtQty);
 
             Controls.Add(new Label() { Text = "Bond Name", Top = y += 30, Left = 10 });
             txtBondName.SetBounds(150, y, 150, 25);
+            Controls.Add(txtBondName);
 
             Controls.Add(new Label() { Text = "Coupon Rate (%)", Top = y += 30, Left = 10 });
             txtCoupon.SetBounds(150, y, 150, 25);
+            Controls.Add(txtCoupon);
 
             Controls.Add(new Label() { Text = "Cheque Amount", Top = y += 30, Left = 10 });
             txtCheque.SetBounds(150, y, 150, 25);
+            Controls.Add(txtCheque);
 
             Controls.Add(new Label() { Text = "Interest Frequency", Top = y += 30, Left = 10 });
+            Controls.Add(cmbFreq);
 
             cmbFreq.SetBounds(150, y, 150, 25);
 
@@ -95,6 +104,7 @@ namespace BONDVERSE
 
             Controls.Add(new Label() { Text = "Maturity Date", Top = y += 30, Left = 10 });
             dtMaturity.SetBounds(150, y, 150, 25);
+            Controls.Add(dtMaturity);
                       
             Button btnAdd = new Button() { Text = "Add Entry", Top = y += 40, Left = 10 };
             Button btnSubmit = new Button() { Text = "Submit", Top = y, Left = 120 };
