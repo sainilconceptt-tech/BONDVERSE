@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Windows.Forms;
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView;
-using LiveChartsCore.SkiaSharpView.WinForms;
 
 namespace BONDVERSE
 {
@@ -16,7 +12,6 @@ namespace BONDVERSE
         Panel rightPanel = new Panel();
 
         DataGridView grid = new DataGridView();
-        CartesianChart chart = new CartesianChart();
 
         Button btnImport = new Button();
         Button btnPdf = new Button();
@@ -24,17 +19,14 @@ namespace BONDVERSE
 
         public PortfolioForm()
         {
-            Text = "BONDVERSE ENTERPRISE";
+            Text = "BONDVERSE";
             WindowState = FormWindowState.Maximized;
 
-            // SPLIT CONTAINER (NO OVERLAP GUARANTEE)
+            // Layout (NO OVERLAP)
             mainSplit.Dock = DockStyle.Fill;
             mainSplit.SplitterDistance = 250;
 
             Controls.Add(mainSplit);
-
-            leftPanel.Dock = DockStyle.Fill;
-            rightPanel.Dock = DockStyle.Fill;
 
             mainSplit.Panel1.Controls.Add(leftPanel);
             mainSplit.Panel2.Controls.Add(rightPanel);
@@ -45,7 +37,8 @@ namespace BONDVERSE
 
         void BuildLeftPanel()
         {
-            leftPanel.BackColor = System.Drawing.Color.FromArgb(20, 25, 40);
+            leftPanel.Dock = DockStyle.Fill;
+            leftPanel.BackColor = System.Drawing.Color.FromArgb(30, 35, 50);
 
             btnImport.Text = "Import Excel";
             btnPdf.Text = "Export PDF";
@@ -61,71 +54,46 @@ namespace BONDVERSE
                 btn.Height = 40;
                 btn.Left = 20;
                 btn.Top = y;
-                btn.BackColor = System.Drawing.Color.FromArgb(40, 50, 80);
+
+                btn.BackColor = System.Drawing.Color.FromArgb(50, 60, 90);
                 btn.ForeColor = System.Drawing.Color.White;
 
                 leftPanel.Controls.Add(btn);
                 y += 60;
             }
 
-            btnImport.Click += ImportExcel;
-            btnPdf.Click += ExportPdf;
-            btnTds.Click += ShowTds;
+            btnImport.Click += (s, e) => MessageBox.Show("Excel Import Ready");
+            btnPdf.Click += (s, e) => MessageBox.Show("PDF Export Ready");
+            btnTds.Click += (s, e) => ShowTds();
         }
 
         void BuildRightPanel()
         {
-            // GRID
-            grid.Dock = DockStyle.Top;
-            grid.Height = 300;
+            rightPanel.Dock = DockStyle.Fill;
 
-            // CHART
-            chart.Dock = DockStyle.Fill;
-
-            rightPanel.Controls.Add(chart);
+            grid.Dock = DockStyle.Fill;
             rightPanel.Controls.Add(grid);
 
-            LoadDummyData();
-            LoadChart();
+            LoadSampleData();
         }
 
-        void LoadDummyData()
+        void LoadSampleData()
         {
             DataTable dt = new DataTable();
-            dt.Columns.Add("Month");
-            dt.Columns.Add("Interest");
+            dt.Columns.Add("Bond Name");
+            dt.Columns.Add("FV");
+            dt.Columns.Add("Apr 2026");
+            dt.Columns.Add("May 2026");
 
-            dt.Rows.Add("Apr", 2000);
-            dt.Rows.Add("May", 3000);
-            dt.Rows.Add("Jun", 2500);
+            dt.Rows.Add("Bond A", "100000", "2000", "2500");
+            dt.Rows.Add("Bond B", "50000", "1000", "1200");
 
             grid.DataSource = dt;
         }
 
-        void LoadChart()
+        void ShowTds()
         {
-            chart.Series = new ISeries[]
-            {
-                new ColumnSeries<double>
-                {
-                    Values = new double[] { 2000, 3000, 2500 }
-                }
-            };
-        }
-
-        void ImportExcel(object sender, EventArgs e)
-        {
-            MessageBox.Show("Excel Import Ready");
-        }
-
-        void ExportPdf(object sender, EventArgs e)
-        {
-            MessageBox.Show("PDF Export Ready");
-        }
-
-        void ShowTds(object sender, EventArgs e)
-        {
-            MessageBox.Show("TDS Summary Ready");
+            MessageBox.Show("TDS Summary will be shown here");
         }
     }
 }
