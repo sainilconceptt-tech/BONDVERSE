@@ -176,21 +176,13 @@ namespace BONDVERSE
         document.Close();
 
         MessageBox.Show("PDF Created Successfully!");
+        }
     }
     catch (Exception ex)
     {
         MessageBox.Show(ex.Message);
     }
 }; 
-            void GenerateTable(object sender, EventArgs e)
-            {
-            Controls.AddRange(new Control[] {
-                txtPortfolio, txtInvestor, dtTrans, txtFV, txtQty,
-                txtBondName, txtCoupon, txtCheque, cmbFreq, dtMaturity,
-                btnAdd, btnSubmit, grid
-            });
-        }
-
         void AddEntry(object sender, EventArgs e)
         {
             try
@@ -222,12 +214,19 @@ namespace BONDVERSE
 
                 ClearForm();
             }
-            catch
+            catch 
             {
                 MessageBox.Show("Please enter valid data");
             }
         }
-
+             void GenerateTable(object sender, EventArgs e)
+            {
+            Controls.AddRange(new Control[] {
+                txtPortfolio, txtInvestor, dtTrans, txtFV, txtQty,
+                txtBondName, txtCoupon, txtCheque, cmbFreq, dtMaturity,
+                btnAdd, btnSubmit, grid
+            });
+        }
                {
             DataTable dt = new DataTable();
 
