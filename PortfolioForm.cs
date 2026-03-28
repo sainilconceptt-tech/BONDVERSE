@@ -42,7 +42,7 @@ namespace BONDVERSE
 
             Controls.Add(new Label() { Text = "Investor Name", Top = y += 30, Left = 10 });
             txtInvestor.SetBounds(150, y, 150, 25);
-            Controls.Add(txtInvestor)
+            Controls.Add(txtInvestor);
 
             Controls.Add(new Label() { Text = "Transaction Date", Top = y += 30, Left = 10 });
             dtTrans.SetBounds(150, y, 150, 25);
