@@ -1,4 +1,5 @@
 using System;
+using system.IO;
 using System.Collections.Generic;
 using System.Data;
 using System.Windows.Forms;
@@ -109,9 +110,13 @@ namespace BONDVERSE
             Button btnAdd = new Button() { Text = "Add Entry", Top = y += 40, Left = 10 };
             Button btnSubmit = new Button() { Text = "Submit", Top = y, Left = 120 };
             Button btnPdf = new Button() { Text = "Export PDF", Top = 460, Left = 300 };
+            Controls.Add(btnAdd);
+            Controls.Add(btnSubmit);
             Controls.Add(btnPdf);
 
-            grid.SetBounds(320, 10, 650, 500);
+           // Grid (RIGHT SIDE VIEW)
+            grid.SetBounds(350, 10, 600, 500);
+            Controls.Add(grid);
 
             btnAdd.Click += AddEntry;
             btnSubmit.Click += GenerateTable;
@@ -119,9 +124,31 @@ namespace BONDVERSE
 {
     try
     {
-        string filePath = "BondReport.pdf";
+        SaveFileDialog saveFile = new SaveFileDialog();
+        saveFile.Filter = "PDF files (*.pdf)|*.pdf";
+        saveFile.FileName = "BondReport.pdf";
 
-        var writer = new PdfWriter(filePath);
+        if (saveFile.ShowDialog() == DialogResult.OK)
+        {
+            string filePath = saveFile.FileName;
+
+            var writer = new PdfWriter(filePath);
+            var pdf = new PdfDocument(writer);
+            var document = new Document(pdf);
+
+            // Example content (you can replace with your grid logic)
+            document.Add(new Paragraph("Bond Report"));
+
+            document.Close();
+
+            MessageBox.Show("PDF saved successfully!");
+        }
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show(ex.Message);
+    }
+};
         var pdf = new PdfDocument(writer);
         var document = new Document(pdf, PageSize.A4.Rotate());
 
