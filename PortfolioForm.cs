@@ -41,7 +41,6 @@ namespace BONDVERSE
 
             InitDB();
 
-            // LEFT PANEL
             Panel left = new Panel()
             {
                 Dock = DockStyle.Left,
@@ -52,7 +51,13 @@ namespace BONDVERSE
 
             int y = 20;
 
-            Label lblInvestor = new Label() { Text = "Investor", Top = y, Left = 15, ForeColor = System.Drawing.Color.White };
+            Label lblInvestor = new Label()
+            {
+                Text = "Investor",
+                Top = y,
+                Left = 15,
+                ForeColor = System.Drawing.Color.White
+            };
             left.Controls.Add(lblInvestor);
 
             cmbInvestor.SetBounds(15, y += 20, 250, 25);
@@ -84,7 +89,7 @@ namespace BONDVERSE
                 "July","August","September","October","November","December"
             });
 
-            AddField(left, "TDS Rate", cmbTDS, ref y);
+            AddField(left, "TDS Rate (%)", cmbTDS, ref y);
             cmbTDS.Items.AddRange(new string[] { "10.4", "20.8" });
             cmbTDS.SelectedIndex = 0;
 
@@ -94,19 +99,15 @@ namespace BONDVERSE
             Button btnAdd = CreateButton("Add Entry", ref y);
             Button btnDelete = CreateButton("Delete Entry", ref y);
             Button btnPDF = CreateButton("Export PDF", ref y);
-            Button btnTDS = CreateButton("TDS Summary", ref y);
+            Button btnMonthSummary = CreateButton("Month Summary", ref y);
 
             AddField(left, "Select Month", cmbMonth, ref y);
-
-            Button btnMonthSummary = CreateButton("Month Summary", ref y);
 
             left.Controls.Add(btnAdd);
             left.Controls.Add(btnDelete);
             left.Controls.Add(btnPDF);
-            left.Controls.Add(btnTDS);
             left.Controls.Add(btnMonthSummary);
 
-            // GRID
             grid.Dock = DockStyle.Fill;
             grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
             Controls.Add(grid);
@@ -116,7 +117,6 @@ namespace BONDVERSE
             btnAdd.Click += AddEntry;
             btnDelete.Click += DeleteEntry;
             btnPDF.Click += ExportPDF;
-            btnTDS.Click += ShowTDS;
             btnMonthSummary.Click += ShowMonthSummary;
 
             cmbInvestor.SelectedIndexChanged += (s, e) => GenerateGrid();
@@ -196,7 +196,6 @@ namespace BONDVERSE
         void GenerateGrid()
         {
             var list = entries.Where(x => x.InvestorName == cmbInvestor.Text).ToList();
-
             if (!list.Any()) return;
 
             DateTime start = list.Min(x => x.TransactionDate);
@@ -207,6 +206,7 @@ namespace BONDVERSE
             dt.Columns.Add("FV");
 
             List<DateTime> months = new List<DateTime>();
+            cmbMonth.Items.Clear();
 
             while (start <= end)
             {
@@ -245,7 +245,7 @@ namespace BONDVERSE
                 dt.Rows.Add(row);
             }
 
-            // TOTAL ROW
+            // TOTAL
             var totalRow = dt.NewRow();
             totalRow["Bond"] = "TOTAL";
 
@@ -257,7 +257,7 @@ namespace BONDVERSE
 
             dt.Rows.Add(totalRow);
 
-            // NET ROW
+            // NET
             var netRow = dt.NewRow();
             netRow["Bond"] = "NET";
 
@@ -276,19 +276,14 @@ namespace BONDVERSE
 
         void ShowMonthSummary(object s, EventArgs e)
         {
-            string month = cmbMonth.Text;
+            if (cmbMonth.Text == "") return;
 
             var dt = (DataTable)grid.DataSource;
 
-            double gross = Convert.ToDouble(dt.Rows[dt.Rows.Count - 2][month]);
-            double net = Convert.ToDouble(dt.Rows[dt.Rows.Count - 1][month]);
+            double gross = Convert.ToDouble(dt.Rows[dt.Rows.Count - 2][cmbMonth.Text]);
+            double net = Convert.ToDouble(dt.Rows[dt.Rows.Count - 1][cmbMonth.Text]);
 
-            MessageBox.Show($"Month: {month}\nGross: {gross}\nNet: {net}");
-        }
-
-        void ShowTDS(object s, EventArgs e)
-        {
-            MessageBox.Show("Quarter-wise TDS calculated from totals");
+            MessageBox.Show($"Month: {cmbMonth.Text}\nGross: {gross}\nNet: {net}");
         }
 
         void DeleteEntry(object s, EventArgs e)
@@ -362,10 +357,10 @@ namespace BONDVERSE
             var pdf = new PdfDocument(writer);
             var doc = new Document(pdf);
 
-            doc.Add(new Paragraph("Bond Report"));
+            doc.Add(new Paragraph("Bond Report Generated"));
 
             doc.Close();
-            MessageBox.Show("PDF saved");
+            MessageBox.Show("PDF saved successfully");
         }
     }
 }
