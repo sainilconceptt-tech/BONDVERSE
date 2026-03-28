@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
+using System.Windows.Forms.DataVisualization.Charting;
 
 namespace BONDVERSE
 {
@@ -12,17 +12,9 @@ namespace BONDVERSE
     {
         Dictionary<string, List<PortfolioEntry>> portfolios = new();
 
-        // UI
         TabControl tabs = new TabControl();
-        TabPage tabPortfolio = new TabPage("Portfolio");
-        TabPage tabReports = new TabPage("Reports");
-
-        Panel sidebar = new Panel();
-        Panel topbar = new Panel();
-        Panel leftPanel = new Panel();
-        Panel rightPanel = new Panel();
-
         DataGridView grid = new DataGridView();
+        Chart chart = new Chart();
 
         // Inputs
         TextBox txtPortfolio = new TextBox();
@@ -35,14 +27,13 @@ namespace BONDVERSE
 
         ComboBox cmbFreq = new ComboBox();
         ComboBox cmbTDS = new ComboBox();
-        ComboBox cmbMonth = new ComboBox();
 
         DateTimePicker dtTrans = new DateTimePicker();
         DateTimePicker dtMat = new DateTimePicker();
 
         public PortfolioForm()
         {
-            Text = "BONDVERSE PRO";
+            Text = "BONDVERSE ENTERPRISE";
             WindowState = FormWindowState.Maximized;
 
             BuildUI();
@@ -50,177 +41,132 @@ namespace BONDVERSE
 
         void BuildUI()
         {
-            // Sidebar
-            sidebar.Dock = DockStyle.Left;
-            sidebar.Width = 200;
-            sidebar.BackColor = Color.FromArgb(25, 35, 70);
-            Controls.Add(sidebar);
-
-            sidebar.Controls.Add(CreateMenu("Import Excel", 50));
-            sidebar.Controls.Add(CreateMenu("Export PDF", 100));
-            sidebar.Controls.Add(CreateMenu("TDS Summary", 150));
-
-            // Topbar
-            topbar.Dock = DockStyle.Top;
-            topbar.Height = 60;
-            topbar.BackColor = Color.WhiteSmoke;
-            Controls.Add(topbar);
-
-            topbar.Controls.Add(new Label()
-            {
-                Text = "BONDVERSE PRO DASHBOARD",
-                Font = new Font("Segoe UI", 14, FontStyle.Bold),
-                Left = 220,
-                Top = 18
-            });
-
-            // Tabs
             tabs.Dock = DockStyle.Fill;
             Controls.Add(tabs);
 
-            tabs.TabPages.Add(tabPortfolio);
-            tabs.TabPages.Add(tabReports);
-
-            BuildPortfolioTab();
-            BuildReportsTab();
+            tabs.TabPages.Add(BuildDashboard());
+            tabs.TabPages.Add(BuildPortfolio());
+            tabs.TabPages.Add(BuildReports());
         }
 
-        Button CreateMenu(string text, int top)
+        // ================= DASHBOARD =================
+        TabPage BuildDashboard()
         {
-            return new Button()
-            {
-                Text = text,
-                Top = top,
-                Left = 10,
-                Width = 180,
-                Height = 40,
-                BackColor = Color.FromArgb(45, 65, 120),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat
-            };
+            TabPage tab = new TabPage("Dashboard");
+
+            chart.Dock = DockStyle.Fill;
+
+            chart.ChartAreas.Add(new ChartArea());
+            chart.Series.Add("Interest");
+            chart.Series["Interest"].ChartType = SeriesChartType.Line;
+
+            tab.Controls.Add(chart);
+
+            return tab;
         }
 
-        void BuildPortfolioTab()
+        // ================= PORTFOLIO =================
+        TabPage BuildPortfolio()
         {
-            leftPanel.Dock = DockStyle.Left;
-            leftPanel.Width = 350;
-            leftPanel.Padding = new Padding(20);
+            TabPage tab = new TabPage("Portfolio");
 
-            rightPanel.Dock = DockStyle.Fill;
+            TableLayoutPanel layout = new TableLayoutPanel();
+            layout.Dock = DockStyle.Fill;
+            layout.ColumnCount = 2;
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 350));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
 
-            tabPortfolio.Controls.Add(rightPanel);
-            tabPortfolio.Controls.Add(leftPanel);
+            // LEFT PANEL
+            Panel left = new Panel();
+            left.Dock = DockStyle.Fill;
+            left.Padding = new Padding(10);
 
             int y = 10;
 
-            AddField("Portfolio", txtPortfolio, ref y);
-            AddField("Investor", txtInvestor, ref y);
+            AddField(left, "Portfolio", txtPortfolio, ref y);
+            AddField(left, "Investor", txtInvestor, ref y);
+            AddField(left, "Date", dtTrans, ref y);
+            AddField(left, "FV", txtFV, ref y);
+            AddField(left, "Qty", txtQty, ref y);
+            AddField(left, "Bond", txtBond, ref y);
+            AddField(left, "Coupon", txtCoupon, ref y);
+            AddField(left, "Cheque", txtCheque, ref y);
 
-            cmbTDS.Items.AddRange(new string[] { "10.4", "20.8" });
-            cmbTDS.SelectedIndex = 0;
-            AddField("TDS %", cmbTDS, ref y);
-
-            AddField("Date", dtTrans, ref y);
-            AddField("FV", txtFV, ref y);
-            AddField("Qty", txtQty, ref y);
-            AddField("Bond", txtBond, ref y);
-            AddField("Coupon", txtCoupon, ref y);
-            AddField("Cheque", txtCheque, ref y);
-
-            cmbFreq.Items.AddRange(new string[] { "Monthly", "Quarterly", "Yearly" });
+            cmbFreq.Items.AddRange(new[] { "Monthly", "Quarterly", "Yearly" });
             cmbFreq.SelectedIndex = 0;
-            AddField("Frequency", cmbFreq, ref y);
+            AddField(left, "Frequency", cmbFreq, ref y);
 
-            AddField("Maturity", dtMat, ref y);
+            AddField(left, "Maturity", dtMat, ref y);
 
-            Button btnAdd = CreateAction("Add", y);
-            Button btnSubmit = CreateAction("Submit", y);
-            btnSubmit.Left = 120;
+            Button btnAdd = new Button() { Text = "Add", Width = 100, Top = y + 10 };
+            Button btnSubmit = new Button() { Text = "Submit", Width = 100, Left = 120, Top = y + 10 };
 
-            leftPanel.Controls.Add(btnAdd);
-            leftPanel.Controls.Add(btnSubmit);
+            left.Controls.Add(btnAdd);
+            left.Controls.Add(btnSubmit);
 
             btnAdd.Click += AddEntry;
             btnSubmit.Click += GenerateTable;
 
-            // GRID
+            // RIGHT PANEL (GRID)
             grid.Dock = DockStyle.Fill;
             grid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.AllCells;
-            rightPanel.Controls.Add(grid);
+
+            layout.Controls.Add(left, 0, 0);
+            layout.Controls.Add(grid, 1, 0);
+
+            tab.Controls.Add(layout);
+
+            return tab;
         }
 
-        void BuildReportsTab()
+        // ================= REPORT =================
+        TabPage BuildReports()
         {
-            cmbMonth.Items.AddRange(new string[]
-            {
-                "Apr","May","Jun","Jul","Aug","Sep",
-                "Oct","Nov","Dec","Jan","Feb","Mar"
-            });
-
-            cmbMonth.Left = 20;
-            cmbMonth.Top = 20;
-
-            Button btnMonth = new Button()
-            {
-                Text = "Monthly Summary",
-                Left = 150,
-                Top = 20
-            };
+            TabPage tab = new TabPage("Reports");
 
             Button btnTDS = new Button()
             {
                 Text = "Quarter TDS",
-                Left = 300,
-                Top = 20
+                Top = 20,
+                Left = 20
             };
 
-            tabReports.Controls.Add(cmbMonth);
-            tabReports.Controls.Add(btnMonth);
-            tabReports.Controls.Add(btnTDS);
+            cmbTDS.Items.AddRange(new[] { "10.4", "20.8" });
+            cmbTDS.SelectedIndex = 0;
+            cmbTDS.Left = 150;
+            cmbTDS.Top = 20;
 
-            btnMonth.Click += ShowMonthSummary;
             btnTDS.Click += ShowTDS;
+
+            tab.Controls.Add(btnTDS);
+            tab.Controls.Add(cmbTDS);
+
+            return tab;
         }
 
-        void AddField(string label, Control ctrl, ref int y)
+        void AddField(Panel p, string label, Control ctrl, ref int y)
         {
-            leftPanel.Controls.Add(new Label()
-            {
-                Text = label,
-                Top = y + 5,
-                Left = 10
-            });
-
+            Label lbl = new Label() { Text = label, Top = y, Left = 10 };
             ctrl.SetBounds(120, y, 180, 25);
-            leftPanel.Controls.Add(ctrl);
+
+            p.Controls.Add(lbl);
+            p.Controls.Add(ctrl);
 
             y += 35;
         }
 
-        Button CreateAction(string text, int y)
-        {
-            return new Button()
-            {
-                Text = text,
-                Width = 100,
-                Height = 35,
-                Top = y + 10,
-                Left = 10,
-                BackColor = Color.FromArgb(0, 120, 215),
-                ForeColor = Color.White
-            };
-        }
+        // ================= LOGIC =================
 
         void AddEntry(object sender, EventArgs e)
         {
-            string p = txtPortfolio.Text;
+            string name = txtPortfolio.Text;
 
-            if (!portfolios.ContainsKey(p))
-                portfolios[p] = new List<PortfolioEntry>();
+            if (!portfolios.ContainsKey(name))
+                portfolios[name] = new List<PortfolioEntry>();
 
-            portfolios[p].Add(new PortfolioEntry()
+            portfolios[name].Add(new PortfolioEntry()
             {
-                PortfolioName = p,
+                PortfolioName = name,
                 InvestorName = txtInvestor.Text,
                 FV = double.Parse(txtFV.Text),
                 Quantity = int.Parse(txtQty.Text),
@@ -261,37 +207,36 @@ namespace BONDVERSE
 
                 foreach (var m in months)
                 {
-                    double val = e1.FV * e1.CouponRate / 100 / 12;
-                    row[m.ToString("MMM yyyy")] = Math.Round(val);
+                    double interest = e1.FV * e1.CouponRate / 100 / 12;
+                    row[m.ToString("MMM yyyy")] = Math.Round(interest);
                 }
 
                 dt.Rows.Add(row);
             }
 
             grid.DataSource = dt;
+
+            UpdateChart(dt);
         }
 
-        void ShowMonthSummary(object sender, EventArgs e)
+        void UpdateChart(DataTable dt)
         {
-            if (cmbMonth.SelectedItem == null) return;
+            chart.Series["Interest"].Points.Clear();
 
-            double total = 0;
-
-            foreach (DataGridViewRow row in grid.Rows)
+            for (int i = 1; i < dt.Columns.Count; i++)
             {
-                foreach (DataGridViewCell cell in row.Cells)
-                {
-                    if (cell.OwningColumn.HeaderText.Contains(cmbMonth.Text))
-                        total += Convert.ToDouble(cell.Value ?? 0);
-                }
-            }
+                double total = 0;
 
-            MessageBox.Show($"Total Interest: {total}");
+                foreach (DataRow row in dt.Rows)
+                    total += Convert.ToDouble(row[i]);
+
+                chart.Series["Interest"].Points.AddXY(dt.Columns[i].ColumnName, total);
+            }
         }
 
         void ShowTDS(object sender, EventArgs e)
         {
-            double tdsRate = double.Parse(cmbTDS.Text) / 100;
+            double rate = double.Parse(cmbTDS.Text) / 100;
 
             double total = 0;
 
@@ -304,7 +249,7 @@ namespace BONDVERSE
                 }
             }
 
-            double tds = total * tdsRate;
+            double tds = total * rate;
 
             MessageBox.Show($"Gross: {total}\nTDS: {tds}\nNet: {total - tds}");
         }
