@@ -309,5 +309,3 @@ namespace BONDVERSE
             txtCheque.Text = "";
         }
     }
-  }
-}
