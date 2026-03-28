@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Windows.Forms;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Windows.Forms.DataVisualization.Charting;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Element;
@@ -33,13 +35,13 @@ namespace BONDVERSE
 
         DataGridView grid = new DataGridView();
 
-        Button btnAdd, btnSubmit, btnPdf, btnEdit, btnMonthSummary;
+        Button btnAdd, btnEdit, btnDelete, btnSubmit, btnPdf, btnSave, btnLoad, btnChart, btnMonthSummary;
 
         public PortfolioForm()
         {
-            Text = "Create Portfolio";
-            Width = 1200;
-            Height = 700;
+            Text = "BONDVERSE";
+            Width = 1300;
+            Height = 750;
 
             int y = 10;
 
@@ -51,7 +53,7 @@ namespace BONDVERSE
             txtInvestor.SetBounds(150, y, 150, 25);
             Controls.Add(txtInvestor);
 
-            Controls.Add(new Label() { Text = "TDS Rate", Top = y += 30, Left = 10 });
+            Controls.Add(new Label() { Text = "TDS Rate (%)", Top = y += 30, Left = 10 });
             cmbTDS.SetBounds(150, y, 150, 25);
             cmbTDS.Items.AddRange(new string[] { "10.4", "20.8" });
             cmbTDS.SelectedIndex = 0;
@@ -106,32 +108,43 @@ namespace BONDVERSE
             dtMaturity.SetBounds(150, y, 150, 25);
             Controls.Add(dtMaturity);
 
-            btnAdd = new Button() { Text = "Add Entry", Top = y += 40, Left = 10 };
-            btnEdit = new Button() { Text = "Edit Selected", Top = y, Left = 120 };
-            btnSubmit = new Button() { Text = "Submit", Top = y, Left = 250 };
-            btnPdf = new Button() { Text = "Export PDF", Top = y, Left = 350 };
+            btnAdd = new Button() { Text = "Add", Top = y += 40, Left = 10 };
+            btnEdit = new Button() { Text = "Edit", Top = y, Left = 80 };
+            btnDelete = new Button() { Text = "Delete", Top = y, Left = 150 };
+            btnSubmit = new Button() { Text = "Submit", Top = y, Left = 230 };
+            btnPdf = new Button() { Text = "PDF", Top = y, Left = 320 };
+            btnSave = new Button() { Text = "Save", Top = y, Left = 400 };
+            btnLoad = new Button() { Text = "Load", Top = y, Left = 480 };
+            btnChart = new Button() { Text = "Chart", Top = y, Left = 560 };
 
             Controls.Add(btnAdd);
             Controls.Add(btnEdit);
+            Controls.Add(btnDelete);
             Controls.Add(btnSubmit);
             Controls.Add(btnPdf);
+            Controls.Add(btnSave);
+            Controls.Add(btnLoad);
+            Controls.Add(btnChart);
 
-            // Month selector
-            cmbMonthSelect.SetBounds(150, y += 40, 150, 25);
-            Controls.Add(new Label() { Text = "Select Month", Top = y, Left = 10 });
+            Controls.Add(new Label() { Text = "Select Month", Top = y += 40, Left = 10 });
+            cmbMonthSelect.SetBounds(150, y, 150, 25);
             Controls.Add(cmbMonthSelect);
 
-            btnMonthSummary = new Button() { Text = "Show Month Summary", Top = y, Left = 320 };
+            btnMonthSummary = new Button() { Text = "Month Summary", Top = y, Left = 320 };
             Controls.Add(btnMonthSummary);
 
             grid.Dock = DockStyle.Right;
-            grid.Width = 750;
+            grid.Width = 800;
             Controls.Add(grid);
 
             btnAdd.Click += AddEntry;
             btnEdit.Click += EditEntry;
+            btnDelete.Click += DeleteEntry;
             btnSubmit.Click += GenerateTable;
             btnPdf.Click += ExportPdf;
+            btnSave.Click += SavePortfolio;
+            btnLoad.Click += LoadPortfolio;
+            btnChart.Click += ShowChart;
             btnMonthSummary.Click += ShowMonthSummary;
         }
 
@@ -169,10 +182,19 @@ namespace BONDVERSE
             txtFV.Text = e1.FV.ToString();
             txtCoupon.Text = e1.CouponRate.ToString();
 
-            editIndex = index;
             entries.RemoveAt(index);
+        }
 
-            MessageBox.Show("Edit loaded. Update and click Add.");
+        void DeleteEntry(object sender, EventArgs e)
+        {
+            if (grid.CurrentRow == null) return;
+
+            int index = grid.CurrentRow.Index;
+            if (index < entries.Count)
+            {
+                entries.RemoveAt(index);
+                GenerateTable(null, null);
+            }
         }
 
         void GenerateTable(object sender, EventArgs e)
@@ -234,7 +256,6 @@ namespace BONDVERSE
                 dt.Rows.Add(row);
             }
 
-            // TOTAL + NET
             double tdsRate = double.Parse(cmbTDS.Text) / 100;
 
             var totalRow = dt.NewRow();
@@ -311,6 +332,71 @@ namespace BONDVERSE
 
                 MessageBox.Show("PDF Saved");
             }
+        }
+
+        void SavePortfolio(object sender, EventArgs e)
+        {
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "Portfolio|*.dat";
+
+            if (save.ShowDialog() == DialogResult.OK)
+            {
+                BinaryFormatter bf = new BinaryFormatter();
+                using (FileStream fs = new FileStream(save.FileName, FileMode.Create))
+                {
+                    bf.Serialize(fs, entries);
+                }
+            }
+        }
+
+        void LoadPortfolio(object sender, EventArgs e)
+        {
+            OpenFileDialog open = new OpenFileDialog();
+            open.Filter = "Portfolio|*.dat";
+
+            if (open.ShowDialog() == DialogResult.OK)
+            {
+                BinaryFormatter bf = new BinaryFormatter();
+                using (FileStream fs = new FileStream(open.FileName, FileMode.Open))
+                {
+                    entries = (List<PortfolioEntry>)bf.Deserialize(fs);
+                }
+
+                GenerateTable(null, null);
+            }
+        }
+
+        void ShowChart(object sender, EventArgs e)
+        {
+            Form f = new Form();
+            Chart chart = new Chart();
+            chart.Dock = DockStyle.Fill;
+            chart.ChartAreas.Add(new ChartArea());
+
+            Series s = new Series();
+            s.ChartType = SeriesChartType.Line;
+
+            foreach (DataGridViewColumn col in grid.Columns)
+            {
+                if (col.Name == "Bond Name" || col.Name == "FV") continue;
+
+                double total = 0;
+
+                foreach (DataGridViewRow row in grid.Rows)
+                {
+                    if (row.Cells["Bond Name"].Value?.ToString() == "TOTAL")
+                    {
+                        total = Convert.ToDouble(row.Cells[col.Name].Value);
+                        break;
+                    }
+                }
+
+                s.Points.AddXY(col.Name, total);
+            }
+
+            chart.Series.Add(s);
+            f.Controls.Add(chart);
+            f.Show();
         }
     }
 }
