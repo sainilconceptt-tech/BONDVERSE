@@ -3,13 +3,15 @@ name: Build BONDVERSE
 on:
   push:
     branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout code
       uses: actions/checkout@v4
 
     - name: Setup .NET
@@ -17,11 +19,17 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: Clean
-      run: dotnet clean
-
-    - name: Restore
+    - name: Restore dependencies
       run: dotnet restore
 
-    - name: Build
+    - name: Build project
       run: dotnet build --configuration Release
+
+    - name: Publish EXE
+      run: dotnet publish -c Release -r win-x64 --self-contained true -o publish
+
+    - name: Upload EXE Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bondverse-exe
+        path: publish
