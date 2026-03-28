@@ -12,21 +12,7 @@ using ExcelDataReader;
 
 namespace BONDVERSE
 {
-    [Serializable]
-    public class PortfolioEntry
-    {
-        public string PortfolioName;
-        public string InvestorName;
-        public DateTime TransactionDate;
-        public double FV;
-        public int Quantity;
-        public string BondName;
-        public double CouponRate;
-        public double ChequeAmount;
-        public string Frequency;
-        public string QuarterStartMonth;
-        public DateTime MaturityDate;
-    }
+    
 
     public class PortfolioForm : Form
     {
