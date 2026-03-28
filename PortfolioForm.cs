@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Element;
+using iText.Kernel.Geom;
 
 namespace BONDVERSE
 {
@@ -59,9 +60,6 @@ namespace BONDVERSE
             Controls.Add(new Label() { Text = "Cheque Amount", Top = y += 30, Left = 10 });
             txtCheque.SetBounds(150, y, 150, 25);
 
-            Controls.Add(new Label() { Text = "Interest Frequency", Top = y += 30, Left = 10 });
-            cmbFreq.SetBounds(150, y, 150, 25);
-            cmbFreq.Items.AddRange(new string[] { "Monthly", "Quarterly", "Yearly" });
             Controls.Add(new Label() { Text = "Interest Frequency", Top = y += 30, Left = 10 });
 
             cmbFreq.SetBounds(150, y, 150, 25);
