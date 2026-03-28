@@ -12,8 +12,6 @@ using ExcelDataReader;
 
 namespace BONDVERSE
 {
-    
-
     public class PortfolioForm : Form
     {
         Dictionary<string, List<PortfolioEntry>> portfolios = new Dictionary<string, List<PortfolioEntry>>();
