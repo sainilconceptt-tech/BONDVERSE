@@ -13,6 +13,7 @@ namespace BONDVERSE
     public class PortfolioForm : Form
     {
         List<PortfolioEntry> entries = new List<PortfolioEntry>();
+        int editIndex = -1;
 
         TextBox txtPortfolio = new TextBox();
         TextBox txtInvestor = new TextBox();
@@ -24,21 +25,21 @@ namespace BONDVERSE
 
         ComboBox cmbFreq = new ComboBox();
         ComboBox cmbQuarterStart = new ComboBox();
+        ComboBox cmbTDS = new ComboBox();
+        ComboBox cmbMonthSelect = new ComboBox();
 
         DateTimePicker dtTrans = new DateTimePicker();
         DateTimePicker dtMaturity = new DateTimePicker();
 
         DataGridView grid = new DataGridView();
 
-        Button btnAdd;
-        Button btnSubmit;
-        Button btnPdf;
+        Button btnAdd, btnSubmit, btnPdf, btnEdit, btnMonthSummary;
 
         public PortfolioForm()
         {
             Text = "Create Portfolio";
-            Width = 1100;
-            Height = 650;
+            Width = 1200;
+            Height = 700;
 
             int y = 10;
 
@@ -49,6 +50,12 @@ namespace BONDVERSE
             Controls.Add(new Label() { Text = "Investor Name", Top = y += 30, Left = 10 });
             txtInvestor.SetBounds(150, y, 150, 25);
             Controls.Add(txtInvestor);
+
+            Controls.Add(new Label() { Text = "TDS Rate", Top = y += 30, Left = 10 });
+            cmbTDS.SetBounds(150, y, 150, 25);
+            cmbTDS.Items.AddRange(new string[] { "10.4", "20.8" });
+            cmbTDS.SelectedIndex = 0;
+            Controls.Add(cmbTDS);
 
             Controls.Add(new Label() { Text = "Transaction Date", Top = y += 30, Left = 10 });
             dtTrans.SetBounds(150, y, 150, 25);
@@ -74,13 +81,13 @@ namespace BONDVERSE
             txtCheque.SetBounds(150, y, 150, 25);
             Controls.Add(txtCheque);
 
-            Controls.Add(new Label() { Text = "Interest Frequency", Top = y += 30, Left = 10 });
+            Controls.Add(new Label() { Text = "Frequency", Top = y += 30, Left = 10 });
             cmbFreq.SetBounds(150, y, 150, 25);
             cmbFreq.Items.AddRange(new string[] { "Monthly", "Quarterly", "Yearly" });
             cmbFreq.SelectedIndex = 0;
             Controls.Add(cmbFreq);
 
-            Controls.Add(new Label() { Text = "Quarter Start Month", Top = y += 30, Left = 10 });
+            Controls.Add(new Label() { Text = "Quarter Start", Top = y += 30, Left = 10 });
             cmbQuarterStart.SetBounds(150, y, 150, 25);
             cmbQuarterStart.Items.AddRange(new string[]
             {
@@ -100,48 +107,72 @@ namespace BONDVERSE
             Controls.Add(dtMaturity);
 
             btnAdd = new Button() { Text = "Add Entry", Top = y += 40, Left = 10 };
-            btnSubmit = new Button() { Text = "Submit", Top = y, Left = 120 };
-            btnPdf = new Button() { Text = "Export PDF", Top = y, Left = 230 };
+            btnEdit = new Button() { Text = "Edit Selected", Top = y, Left = 120 };
+            btnSubmit = new Button() { Text = "Submit", Top = y, Left = 250 };
+            btnPdf = new Button() { Text = "Export PDF", Top = y, Left = 350 };
 
             Controls.Add(btnAdd);
+            Controls.Add(btnEdit);
             Controls.Add(btnSubmit);
             Controls.Add(btnPdf);
 
-            grid.SetBounds(350, 10, 700, 550);
+            // Month selector
+            cmbMonthSelect.SetBounds(150, y += 40, 150, 25);
+            Controls.Add(new Label() { Text = "Select Month", Top = y, Left = 10 });
+            Controls.Add(cmbMonthSelect);
+
+            btnMonthSummary = new Button() { Text = "Show Month Summary", Top = y, Left = 320 };
+            Controls.Add(btnMonthSummary);
+
+            grid.Dock = DockStyle.Right;
+            grid.Width = 750;
             Controls.Add(grid);
 
             btnAdd.Click += AddEntry;
+            btnEdit.Click += EditEntry;
             btnSubmit.Click += GenerateTable;
             btnPdf.Click += ExportPdf;
+            btnMonthSummary.Click += ShowMonthSummary;
         }
 
         void AddEntry(object sender, EventArgs e)
         {
-            try
+            PortfolioEntry p = new PortfolioEntry()
             {
-                PortfolioEntry p = new PortfolioEntry()
-                {
-                    PortfolioName = txtPortfolio.Text,
-                    InvestorName = txtInvestor.Text,
-                    TransactionDate = dtTrans.Value,
-                    FV = double.Parse(txtFV.Text),
-                    Quantity = int.Parse(txtQty.Text),
-                    BondName = txtBondName.Text,
-                    CouponRate = double.Parse(txtCoupon.Text),
-                    ChequeAmount = double.Parse(txtCheque.Text),
-                    Frequency = cmbFreq.Text,
-                    MaturityDate = dtMaturity.Value,
-                    QuarterStartMonth = cmbQuarterStart.Text
-                };
+                PortfolioName = txtPortfolio.Text,
+                InvestorName = txtInvestor.Text,
+                TransactionDate = dtTrans.Value,
+                FV = double.Parse(txtFV.Text),
+                Quantity = int.Parse(txtQty.Text),
+                BondName = txtBondName.Text,
+                CouponRate = double.Parse(txtCoupon.Text),
+                ChequeAmount = double.Parse(txtCheque.Text),
+                Frequency = cmbFreq.Text,
+                MaturityDate = dtMaturity.Value,
+                QuarterStartMonth = cmbQuarterStart.Text
+            };
 
-                entries.Add(p);
-                MessageBox.Show("Entry Added");
-                ClearForm();
-            }
-            catch
-            {
-                MessageBox.Show("Invalid input");
-            }
+            entries.Add(p);
+            MessageBox.Show("Added");
+        }
+
+        void EditEntry(object sender, EventArgs e)
+        {
+            if (grid.CurrentRow == null) return;
+
+            int index = grid.CurrentRow.Index;
+            if (index >= entries.Count) return;
+
+            var e1 = entries[index];
+
+            txtBondName.Text = e1.BondName;
+            txtFV.Text = e1.FV.ToString();
+            txtCoupon.Text = e1.CouponRate.ToString();
+
+            editIndex = index;
+            entries.RemoveAt(index);
+
+            MessageBox.Show("Edit loaded. Update and click Add.");
         }
 
         void GenerateTable(object sender, EventArgs e)
@@ -162,6 +193,10 @@ namespace BONDVERSE
                 months.Add(start);
                 start = start.AddMonths(1);
             }
+
+            cmbMonthSelect.Items.Clear();
+            foreach (var m in months)
+                cmbMonthSelect.Items.Add(m.ToString("MMM yyyy"));
 
             foreach (var e1 in entries)
             {
@@ -199,79 +234,83 @@ namespace BONDVERSE
                 dt.Rows.Add(row);
             }
 
-            // TOTAL ROW
+            // TOTAL + NET
+            double tdsRate = double.Parse(cmbTDS.Text) / 100;
+
             var totalRow = dt.NewRow();
             totalRow["Bond Name"] = "TOTAL";
 
+            var netRow = dt.NewRow();
+            netRow["Bond Name"] = "NET";
+
             foreach (DataColumn col in dt.Columns)
             {
-                if (col.ColumnName != "Bond Name" && col.ColumnName != "FV")
-                {
-                    double sum = 0;
+                if (col.ColumnName == "Bond Name" || col.ColumnName == "FV") continue;
 
-                    foreach (DataRow r in dt.Rows)
-                        sum += Convert.ToDouble(r[col]);
-
-                    totalRow[col] = sum;
-                }
+                double sum = dt.AsEnumerable().Sum(r => Convert.ToDouble(r[col]));
+                totalRow[col] = sum;
+                netRow[col] = Math.Round(sum * (1 - tdsRate));
             }
 
             dt.Rows.Add(totalRow);
+            dt.Rows.Add(netRow);
 
             grid.DataSource = dt;
         }
 
-        void ExportPdf(object sender, EventArgs e)
+        void ShowMonthSummary(object sender, EventArgs e)
         {
-            try
+            if (cmbMonthSelect.SelectedItem == null) return;
+
+            string month = cmbMonthSelect.SelectedItem.ToString();
+
+            double gross = 0;
+
+            foreach (DataGridViewRow row in grid.Rows)
             {
-                SaveFileDialog saveFile = new SaveFileDialog();
-                saveFile.Filter = "PDF files (*.pdf)|*.pdf";
-                saveFile.FileName = "BondReport.pdf";
-
-                if (saveFile.ShowDialog() == DialogResult.OK)
+                if (row.Cells["Bond Name"].Value?.ToString() == "TOTAL")
                 {
-                    string filePath = saveFile.FileName;
-
-                    using (var writer = new PdfWriter(filePath))
-                    using (var pdf = new PdfDocument(writer))
-                    using (var document = new Document(pdf))
-                    {
-                        float[] widths = new float[grid.Columns.Count];
-                        for (int i = 0; i < widths.Length; i++) widths[i] = 1;
-
-                        Table table = new Table(widths);
-
-                        foreach (DataGridViewColumn col in grid.Columns)
-                            table.AddHeaderCell(col.HeaderText);
-
-                        foreach (DataGridViewRow row in grid.Rows)
-                        {
-                            if (row.IsNewRow) continue;
-
-                            foreach (DataGridViewCell cell in row.Cells)
-                                table.AddCell(cell.Value?.ToString() ?? "");
-                        }
-
-                        document.Add(table);
-                    }
-
-                    MessageBox.Show("PDF saved successfully!");
+                    gross = Convert.ToDouble(row.Cells[month].Value);
+                    break;
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
+
+            double tdsRate = double.Parse(cmbTDS.Text) / 100;
+            double net = gross * (1 - tdsRate);
+
+            MessageBox.Show($"Month: {month}\nGross: {gross}\nNet: {Math.Round(net)}");
         }
 
-        void ClearForm()
+        void ExportPdf(object sender, EventArgs e)
         {
-            txtFV.Text = "";
-            txtQty.Text = "";
-            txtBondName.Text = "";
-            txtCoupon.Text = "";
-            txtCheque.Text = "";
+            SaveFileDialog save = new SaveFileDialog();
+            save.Filter = "PDF|*.pdf";
+
+            if (save.ShowDialog() == DialogResult.OK)
+            {
+                using (var writer = new PdfWriter(save.FileName))
+                using (var pdf = new PdfDocument(writer))
+                using (var doc = new Document(pdf))
+                {
+                    float[] widths = Enumerable.Repeat(1f, grid.Columns.Count).ToArray();
+                    Table table = new Table(widths);
+
+                    foreach (DataGridViewColumn col in grid.Columns)
+                        table.AddHeaderCell(col.HeaderText);
+
+                    foreach (DataGridViewRow row in grid.Rows)
+                    {
+                        if (row.IsNewRow) continue;
+
+                        foreach (DataGridViewCell cell in row.Cells)
+                            table.AddCell(cell.Value?.ToString() ?? "");
+                    }
+
+                    doc.Add(table);
+                }
+
+                MessageBox.Show("PDF Saved");
+            }
         }
     }
 }
